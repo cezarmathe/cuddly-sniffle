@@ -60,12 +60,11 @@ impl<T> RawCell<T> {
             if let Some(value) = cache.as_ref() {
                 break value.clone()
             }
-            std::thread::yield_now();
         }
     }
 
-    /// Update the cache.
-    pub fn update(&self, new: T) {
+    /// Update the cell, returning the old value.
+    pub fn update(&self, new: T) -> Arc<T> {
         let _ = self.update_lock.lock();
         let selector = self.get_selector();
         {
@@ -75,7 +74,7 @@ impl<T> RawCell<T> {
         self.switch_selector();
         {
             let mut cell = self.inner[selector].write();
-            *cell = None;
+            cell.take().expect("RawCell::update - old value was missing from the cell")
         }
     }
 
@@ -91,7 +90,8 @@ impl<T> RawCell<T> {
 }
 
 impl<T: Default> RawCell<T> {
-    pub fn update_default(&self) {
+    /// Update the cell with the default value, returning the old value.
+    pub fn update_with_default(&self) -> Arc<T> {
         self.update(T::default())
     }
 }
