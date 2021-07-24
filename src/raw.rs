@@ -1,6 +1,7 @@
 //! The raw cuddly-sniffle cell.
 
 use std::sync::Arc;
+use std::sync::Weak;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering as AtomicOrdering;
 
@@ -29,7 +30,7 @@ impl<T: Default> Default for RawCell<T> {
 
 impl<T> RawCell<T> {
     /// Create a new, empty RawCell.
-    pub const fn new() -> Self {
+    pub(crate) const fn new() -> Self {
         Self {
             inner: [
                 parking_lot::const_rwlock(None),
@@ -41,7 +42,7 @@ impl<T> RawCell<T> {
     }
 
     /// Create a new RawCell with a value.
-    pub fn with_value(value: T) -> Self {
+    pub(crate) fn with_value(value: T) -> Self {
         Self {
             inner: [
                 RwLock::new(Some(Arc::new(value))),
@@ -52,19 +53,30 @@ impl<T> RawCell<T> {
         }
     }
 
-    /// Get the current value of the cache.
-    pub fn get(&self) -> Arc<T> {
+    /// Get the current value of the cell.
+    pub(crate) fn get_blocking(&self) -> Arc<T> {
         loop {
             let selector = self.get_selector();
             let cache = self.inner[selector].read();
             if let Some(value) = cache.as_ref() {
-                break value.clone()
+                break Arc::clone(value)
+            }
+        }
+    }
+
+    /// Get the current value of the cell (as a weak pointer).
+    pub(crate) fn get_weak_blocking(&self) -> Weak<T> {
+        loop {
+            let selector = self.get_selector();
+            let cache = self.inner[selector].read();
+            if let Some(value) = cache.as_ref() {
+                break Arc::downgrade(value)
             }
         }
     }
 
     /// Update the cell, returning the old value.
-    pub fn update(&self, new: T) -> Arc<T> {
+    pub(crate) fn update_blocking(&self, new: T) -> Arc<T> {
         let _ = self.update_lock.lock();
         let selector = self.get_selector();
         {
@@ -91,7 +103,7 @@ impl<T> RawCell<T> {
 
 impl<T: Default> RawCell<T> {
     /// Update the cell with the default value, returning the old value.
-    pub fn update_with_default(&self) -> Arc<T> {
-        self.update(T::default())
+    pub(crate) fn update_blocking_with_default(&self) -> Arc<T> {
+        self.update_blocking(T::default())
     }
 }
