@@ -1,10 +1,5 @@
 //! cuddly-sniffle
 
-#[cfg(feature = "async")]
-compile_error!("The async feature is not supported yet.");
-
-#[cfg(feature = "async")]
-mod future;
 mod raw;
 
 use std::sync::Arc;
@@ -35,39 +30,23 @@ impl<T> Cell<T> {
     }
 
     /// Get the current value of the cell.
-    #[cfg(feature = "async")]
-    pub async fn get(&self) -> Arc<T> {
-        todo!()
-    }
-
-    /// Get the current value of the cell.
     #[inline(always)]
-    pub fn get_blocking(&self) -> Arc<T> {
-        self.raw.get_blocking()
-    }
-
-    /// Get the current value of the cell (as a weak pointer).
-    #[cfg(feature = "async")]
-    pub async fn get_weak(&self) -> Weak<T> {
-        todo!()
+    pub fn get(&self) -> Arc<T> {
+        self.raw.get()
     }
 
     /// Get the current value of the cell (as a weak pointer).
     #[inline(always)]
-    pub fn get_weak_blocking(&self) -> Weak<T> {
-        self.raw.get_weak_blocking()
+    pub fn get_weak(&self) -> Weak<T> {
+        self.raw.get_weak()
     }
 
     /// Update the cell, returning the old value.
-    #[cfg(feature = "async")]
-    pub async fn update(&self, value: T) -> Arc<T> {
-        todo!()
-    }
-
-    /// Update the cell, returning the old value.
+    ///
+    /// If the cell did not previously have a value, the same value is returned.
     #[inline(always)]
-    pub fn update_blocking(&self, value: T) -> Arc<T> {
-        self.raw.update_blocking(value)
+    pub fn update(&self, value: T) -> Arc<T> {
+        self.raw.update(value)
     }
 }
 
@@ -80,14 +59,10 @@ impl<T: Default> Default for Cell<T> {
 }
 
 impl<T: Default> Cell<T> {
-    /// Update the cell with the default value, returning the old value.
-    #[cfg(feature = "async")]
-    pub async fn update_with_default(&self) -> Arc<T> {
-        todo!()
-    }
-
-    /// Update the cell with the default value, returning the old value.
-    pub fn update_with_default_blocking(&self) -> Arc<T> {
-        self.raw.update_with_default_blocking()
+    /// Update the cell with the default value for this type,
+    /// returning the old value.
+    #[inline(always)]
+    pub fn update_with_default(&self) -> Arc<T> {
+        self.update(T::default())
     }
 }

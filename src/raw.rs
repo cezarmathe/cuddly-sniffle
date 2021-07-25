@@ -48,7 +48,7 @@ impl<T> RawCell<T> {
     }
 
     /// Get the current value of the cell.
-    pub(crate) fn get_blocking(&self) -> Arc<T> {
+    pub(crate) fn get(&self) -> Arc<T> {
         loop {
             let selector = self.get_selector();
             let guard = self.inner[selector].read();
@@ -59,7 +59,7 @@ impl<T> RawCell<T> {
     }
 
     /// Get the current value of the cell (as a weak pointer).
-    pub(crate) fn get_weak_blocking(&self) -> Weak<T> {
+    pub(crate) fn get_weak(&self) -> Weak<T> {
         loop {
             let selector = self.get_selector();
             let guard = self.inner[selector].read();
@@ -70,7 +70,7 @@ impl<T> RawCell<T> {
     }
 
     /// Update the cell, returning the old value.
-    pub(crate) fn update_blocking(&self, new: T) -> Arc<T> {
+    pub(crate) fn update(&self, new: T) -> Arc<T> {
         let _update_lock = self.update_lock.lock();
         let new_arc = Arc::new(new);
         let selector = self.get_selector() ^ 1;
@@ -93,12 +93,5 @@ impl<T> RawCell<T> {
     #[inline]
     fn switch_selector(&self) -> usize {
         self.selector.fetch_xor(1, AtomicOrdering::Release)
-    }
-}
-
-impl<T: Default> RawCell<T> {
-    /// Update the cell with the default value, returning the old value.
-    pub(crate) fn update_with_default_blocking(&self) -> Arc<T> {
-        self.update_blocking(T::default())
     }
 }
