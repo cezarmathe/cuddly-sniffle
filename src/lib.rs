@@ -14,20 +14,24 @@ use self::raw::RawCell;
 
 /// A cuddly-sniffle cell.
 pub struct Cell<T> {
-    raw: raw::RawCell<T>,
+    raw: RawCell<T>,
 }
 
 impl<T> Cell<T> {
     /// Create a new cell.
     #[inline(always)]
     pub const fn new() -> Self {
-        Self { raw: RawCell::new() }
+        Self {
+            raw: RawCell::new(),
+        }
     }
 
     /// Create a new cell with a value.
     #[inline(always)]
     pub fn with_value(value: T) -> Self {
-        Self { raw: RawCell::with_value(value) }
+        Self {
+            raw: RawCell::with_value(value),
+        }
     }
 
     /// Get the current value of the cell.
@@ -38,7 +42,7 @@ impl<T> Cell<T> {
 
     /// Get the current value of the cell.
     #[inline(always)]
-    pub async fn get_blocking(&self) -> Arc<T> {
+    pub fn get_blocking(&self) -> Arc<T> {
         self.raw.get_blocking()
     }
 
@@ -50,7 +54,7 @@ impl<T> Cell<T> {
 
     /// Get the current value of the cell (as a weak pointer).
     #[inline(always)]
-    pub async fn get_weak_blocking(&self) -> Weak<T> {
+    pub fn get_weak_blocking(&self) -> Weak<T> {
         self.raw.get_weak_blocking()
     }
 
@@ -83,7 +87,7 @@ impl<T: Default> Cell<T> {
     }
 
     /// Update the cell with the default value, returning the old value.
-    pub fn update_blocking_with_default(&self) -> Arc<T> {
-        self.raw.update_blocking_with_default()
+    pub fn update_with_default_blocking(&self) -> Arc<T> {
+        self.raw.update_with_default_blocking()
     }
 }

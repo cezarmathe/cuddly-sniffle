@@ -1,9 +1,9 @@
 //! The raw cuddly-sniffle cell.
 
-use std::sync::Arc;
-use std::sync::Weak;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering as AtomicOrdering;
+use std::sync::Arc;
+use std::sync::Weak;
 
 use parking_lot::Mutex;
 use parking_lot::RwLock;
@@ -18,10 +18,7 @@ pub(crate) struct RawCell<T> {
 impl<T: Default> Default for RawCell<T> {
     fn default() -> Self {
         Self {
-            inner: [
-                RwLock::new(Some(Arc::new(T::default()))),
-                RwLock::new(None),
-            ],
+            inner: [RwLock::new(Some(Arc::new(T::default()))), RwLock::new(None)],
             selector: AtomicUsize::new(0),
             update_lock: Mutex::new(()),
         }
@@ -44,10 +41,7 @@ impl<T> RawCell<T> {
     /// Create a new RawCell with a value.
     pub(crate) fn with_value(value: T) -> Self {
         Self {
-            inner: [
-                RwLock::new(Some(Arc::new(value))),
-                RwLock::new(None),
-            ],
+            inner: [RwLock::new(Some(Arc::new(value))), RwLock::new(None)],
             selector: AtomicUsize::new(0),
             update_lock: Mutex::new(()),
         }
@@ -57,9 +51,9 @@ impl<T> RawCell<T> {
     pub(crate) fn get_blocking(&self) -> Arc<T> {
         loop {
             let selector = self.get_selector();
-            let cache = self.inner[selector].read();
-            if let Some(value) = cache.as_ref() {
-                break Arc::clone(value)
+            let guard = self.inner[selector].read();
+            if let Some(value) = guard.as_ref() {
+                break Arc::clone(value);
             }
         }
     }
@@ -68,42 +62,43 @@ impl<T> RawCell<T> {
     pub(crate) fn get_weak_blocking(&self) -> Weak<T> {
         loop {
             let selector = self.get_selector();
-            let cache = self.inner[selector].read();
-            if let Some(value) = cache.as_ref() {
-                break Arc::downgrade(value)
+            let guard = self.inner[selector].read();
+            if let Some(value) = guard.as_ref() {
+                break Arc::downgrade(value);
             }
         }
     }
 
     /// Update the cell, returning the old value.
     pub(crate) fn update_blocking(&self, new: T) -> Arc<T> {
-        let _ = self.update_lock.lock();
-        let selector = self.get_selector();
-        {
-            let mut cell = self.inner[selector ^ 1].write();
-            *cell = Some(Arc::new(new));
-        }
-        self.switch_selector();
+        let _update_lock = self.update_lock.lock();
+        let new_arc = Arc::new(new);
+        let selector = self.get_selector() ^ 1;
         {
             let mut cell = self.inner[selector].write();
-            cell.take().expect("RawCell::update - old value was missing from the cell")
+            *cell = Some(Arc::clone(&new_arc));
+        }
+        let selector = self.switch_selector();
+        {
+            let mut cell = self.inner[selector].write();
+            cell.take().unwrap_or(new_arc)
         }
     }
 
     #[inline]
     fn get_selector(&self) -> usize {
-        self.selector.load(AtomicOrdering::SeqCst)
+        self.selector.load(AtomicOrdering::Acquire)
     }
 
     #[inline]
-    fn switch_selector(&self) {
-        self.selector.fetch_xor(1, AtomicOrdering::SeqCst);
+    fn switch_selector(&self) -> usize {
+        self.selector.fetch_xor(1, AtomicOrdering::Release)
     }
 }
 
 impl<T: Default> RawCell<T> {
     /// Update the cell with the default value, returning the old value.
-    pub(crate) fn update_blocking_with_default(&self) -> Arc<T> {
+    pub(crate) fn update_with_default_blocking(&self) -> Arc<T> {
         self.update_blocking(T::default())
     }
 }
