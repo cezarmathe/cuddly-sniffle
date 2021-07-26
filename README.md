@@ -1,5 +1,8 @@
 # qrwcell - quick read-write cell
 
+![Crates.io](https://img.shields.io/crates/v/qrwcell)
+![docs.rs](https://img.shields.io/docsrs/qrwcell)
+
 Read-write cell that aims to reduce the amount of blocking compared to a single
 read-write lock.
 
