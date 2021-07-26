@@ -1,4 +1,4 @@
-//! The raw cuddly-sniffle cell.
+//! The raw quick read-write cell.
 
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering as AtomicOrdering;
@@ -8,14 +8,14 @@ use std::sync::Weak;
 use parking_lot::Mutex;
 use parking_lot::RwLock;
 
-/// Raw cuddly-sniffle cell.
-pub(crate) struct RawCell<T> {
+/// Raw quick read-write cell.
+pub(crate) struct RawQrwCell<T> {
     inner: [RwLock<Option<Arc<T>>>; 2],
     selector: AtomicUsize,
     update_lock: Mutex<()>,
 }
 
-impl<T: Default> Default for RawCell<T> {
+impl<T: Default> Default for RawQrwCell<T> {
     fn default() -> Self {
         Self {
             inner: [RwLock::new(Some(Arc::new(T::default()))), RwLock::new(None)],
@@ -25,8 +25,8 @@ impl<T: Default> Default for RawCell<T> {
     }
 }
 
-impl<T> RawCell<T> {
-    /// Create a new, empty RawCell.
+impl<T> RawQrwCell<T> {
+    /// Create a new, empty RawQrwCell.
     pub(crate) const fn new() -> Self {
         Self {
             inner: [
@@ -38,7 +38,7 @@ impl<T> RawCell<T> {
         }
     }
 
-    /// Create a new RawCell with a value.
+    /// Create a new RawQrwCell with a value.
     pub(crate) fn with_value(value: T) -> Self {
         Self {
             inner: [RwLock::new(Some(Arc::new(value))), RwLock::new(None)],

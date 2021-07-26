@@ -1,23 +1,30 @@
-//! cuddly-sniffle
+//! # qrwcell - quick read-write cell
+//!
+//! This is a cell with two slots - one for reading and one for writing. Writing
+//! alternates the slot that is currently served to readers, thereby minimising
+//! blocking on a reader-writer lock.
+//!
+//! Please be aware that if a cell is not created with a value or updated at
+//! least once attempting to get the inner value will loop forever!
 
 mod raw;
 
 use std::sync::Arc;
 use std::sync::Weak;
 
-use self::raw::RawCell;
+use self::raw::RawQrwCell;
 
-/// A cuddly-sniffle cell.
-pub struct Cell<T> {
-    raw: RawCell<T>,
+/// A quick read-write cell.
+pub struct QrwCell<T> {
+    raw: RawQrwCell<T>,
 }
 
-impl<T> Cell<T> {
+impl<T> QrwCell<T> {
     /// Create a new cell.
     #[inline(always)]
     pub const fn new() -> Self {
         Self {
-            raw: RawCell::new(),
+            raw: RawQrwCell::new(),
         }
     }
 
@@ -25,12 +32,13 @@ impl<T> Cell<T> {
     #[inline(always)]
     pub fn with_value(value: T) -> Self {
         Self {
-            raw: RawCell::with_value(value),
+            raw: RawQrwCell::with_value(value),
         }
     }
 
     /// Get the current value of the cell.
     #[inline(always)]
+    #[must_use]
     pub fn get(&self) -> Arc<T> {
         self.raw.get()
     }
@@ -50,15 +58,15 @@ impl<T> Cell<T> {
     }
 }
 
-impl<T: Default> Default for Cell<T> {
+impl<T: Default> Default for QrwCell<T> {
     fn default() -> Self {
         Self {
-            raw: RawCell::default(),
+            raw: RawQrwCell::default(),
         }
     }
 }
 
-impl<T: Default> Cell<T> {
+impl<T: Default> QrwCell<T> {
     /// Update the cell with the default value for this type,
     /// returning the old value.
     #[inline(always)]

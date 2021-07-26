@@ -1,8 +1,8 @@
-# cuddly-sniffle
+# qrwcell - quick read-write cell
 
-**WORK IN PROGRESS**
+This is a cell with two slots - one for reading and one for writing. Writing
+alternates the slot that is currently served to readers, thereby minimising
+blocking on a reader-writer lock.
 
-- you want a way to store the data you need to process incoming requests
-- you want to be able to access that data from anywhere in your application
-- you want to be able to access the data with close to no blocking
-- you want to be able to update the data with close to no blocking
+Please be aware that if a cell is not created with a value or updated at
+least once attempting to get the inner value will loop forever!

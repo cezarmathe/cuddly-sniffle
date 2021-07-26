@@ -1,5 +1,5 @@
 [package]
-name = "cuddly-sniffle"
+name = "qrwcell"
 version = "0.1.0"
 authors = ["Armand-Cezar Mathe <me@cezarmathe.com>"]
 edition = "2018"
