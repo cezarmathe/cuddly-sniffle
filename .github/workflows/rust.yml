@@ -1,6 +1,6 @@
 on: push
 
-name: Continuous integration
+name: Rust
 
 jobs:
   ci:
@@ -11,8 +11,7 @@ jobs:
           - stable
           - beta
           - nightly
-          # todo 30/07/2021: add a MSRV
-          # - 1.31.0  # MSRV
+          - 1.36.0
 
     steps:
       - uses: actions/checkout@v2
