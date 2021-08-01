@@ -1,7 +1,15 @@
 # qrwcell - quick read-write cell
 
-![Crates.io](https://img.shields.io/crates/v/qrwcell)
-![docs.rs](https://img.shields.io/docsrs/qrwcell)
+[![Crates.io][crates-badge]][crates-url]
+[![Docs.rs][docs-badge]][docs-url]
+[![Rust][ci-badge]][ci-url]
+
+[crates-badge]: https://img.shields.io/crates/v/qrwcell.svg
+[crates-url]: https://crates.io/crates/qrwcell
+[docs-badge]: https://docs.rs/qrwcell/badge.svg
+[docs-url]: https://docs.rs/qrwcell
+[ci-badge]: https://github.com/cezarmathe/qrwcell/workflows/Rust/badge.svg
+[ci-url]: https://github.com/cezarmathe/qrwcell/actions/workflows/rust.yml
 
 Read-write cell that aims to reduce the amount of blocking compared to a single
 read-write lock.
