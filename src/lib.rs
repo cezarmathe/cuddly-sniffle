@@ -6,9 +6,6 @@
 //! The cell has two slots - one for reading and one for writing. Writing
 //! alternates the slot that is currently served to readers, thereby minimising
 //! blocking on a reader-writer lock.
-//!
-//! Please be aware that if a cell is not created with a value or updated at
-//! least once attempting to get the inner value will loop forever!
 
 mod raw;
 
@@ -40,6 +37,8 @@ impl<T> QrwCell<T> {
     }
 
     /// Get the current value of the cell.
+    ///
+    /// This function will panic if the cell is in an uninitialized state.
     #[inline(always)]
     #[must_use]
     pub fn get(&self) -> Arc<T> {
@@ -47,6 +46,8 @@ impl<T> QrwCell<T> {
     }
 
     /// Get the current value of the cell (as a weak pointer).
+    ///
+    /// This function will panic if the cell is in an uninitialized state.
     #[inline(always)]
     pub fn get_weak(&self) -> Weak<T> {
         self.raw.get_weak()
