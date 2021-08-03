@@ -1,6 +1,6 @@
 [package]
 name        = "qrwcell"
-version     = "0.1.0"
+version     = "0.2.0"
 authors     = ["Armand-Cezar Mathe <me@cezarmathe.com>"]
 edition     = "2018"
 description = "Read-write cell that aims to reduce the amount of blocking compared to a single read-write lock."
